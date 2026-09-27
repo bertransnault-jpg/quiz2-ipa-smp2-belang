@@ -3,6 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+<link rel="preconnect" href="https://unpkg.com" crossorigin>
+<link rel="preconnect" href="https://storage.googleapis.com" crossorigin>
 <title>Quiz IPA - SMP Negeri 2 Belang</title>
 <style>
 :root{
@@ -36,7 +40,7 @@ video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;backgrou
 .choice.correct{outline:6px solid #20c878;background:#146b3a!important}
 .choice.wrong{outline:6px solid #ef5350;background:#7c2020!important}
 @keyframes fall{from{transform:translateY(-120px)}to{transform:translateY(var(--fall-distance))}}
-.bottom{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:10px}
+.navQuestions{display:flex;justify-content:center;align-items:center;gap:10px;flex-wrap:wrap;margin-top:10px}.navQuestions button{min-width:105px;font-weight:800}.questionCounter{background:#17304c;border:1px solid #365b82;border-radius:10px;padding:9px 14px;font-weight:800}.bottom{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:10px}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px}
 .panel h3{margin:0 0 9px;font-size:15px}
 .row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
@@ -70,7 +74,7 @@ select,input[type=number]{background:#071222;color:#fff;border:1px solid var(--l
 
   <div class="stageWrap">
     <div class="stage" id="stage">
-      <video id="video" autoplay playsinline muted></video>
+      <video id="video" autoplay playsinline webkit-playsinline muted></video>
       <canvas id="handCanvas"></canvas>
       <div class="camOff" id="camOff">
         <div><strong>Kamera belum aktif</strong><br><span class="small">Gunakan Chrome/Edge/Safari terbaru. Berikan izin kamera. Untuk file HTML, buka melalui HTTPS atau localhost.</span></div>
@@ -86,7 +90,13 @@ select,input[type=number]{background:#071222;color:#fff;border:1px solid var(--l
 
   <div class="row" style="margin-top:9px">
     <span class="handBadge"><span class="dot" id="handDot"></span><span id="handState">Deteksi jari belum aktif</span></span>
-    <span class="small">Arahkan ujung jari telunjuk ke pilihan. Jika ujung jari berada di dalam gelembung jawaban, sistem memilihnya otomatis.</span>
+    <span class="small">Arahkan ujung jari telunjuk ke pilihan. Jika ujung jari berada di dalam gelembung jawaban, sistem memilihnya otomatis. Untuk iPhone, izinkan Kamera dan pastikan halaman dibuka melalui HTTPS.</span>
+  </div>
+
+  <div class="navQuestions">
+    <button id="backBtn">⬅ Back</button>
+    <span class="questionCounter" id="questionCounter">Soal 1 dari 10</span>
+    <button id="nextBtn" class="primary">Next ➡</button>
   </div>
 
   <div class="bottom">
@@ -96,36 +106,56 @@ select,input[type=number]{background:#071222;color:#fff;border:1px solid var(--l
         <label class="small">Durasi jatuh
           <input id="duration" type="number" min="3" max="20" value="8"> detik
         </label>
-        <label class="small">Soal
-          <select id="questionSelect">
-            <option value="0">Sistem pencernaan</option>
-            <option value="1">Sistem pernapasan</option>
-            <option value="2">Zat dan perubahan</option>
-            <option value="3">Pesawat sederhana</option>
-          </select>
+        <label class="small">Pilih soal
+          <select id="questionSelect"></select>
         </label>
       </div>
+      <p class="small">Tersedia 10 soal: Sistem Pernapasan, Sistem Pencernaan, dan Sistem Peredaran Darah. Gunakan tombol <b>Back</b> dan <b>Next</b> untuk berpindah soal.</p>
       <p class="small">Mode kamera menggunakan deteksi landmark tangan. Yang dipakai sebagai penunjuk adalah ujung jari telunjuk (landmark 8), bukan sentuhan pada layar.</p>
     </section>
 
     <section class="panel">
-      <h3>Bank soal IPA</h3>
-      <textarea id="bank">Apa organ utama yang berfungsi menyerap sari-sari makanan?
-Usus halus|Usus besar|Lambung|Kerongkongan
-Usus halus
-
-Organ yang menjadi tempat pertukaran oksigen dan karbon dioksida adalah...
+      <h3>Bank Soal IPA — 10 Soal</h3>
+      <textarea id="bank">[Pernapasan] Organ utama tempat pertukaran oksigen dan karbon dioksida adalah...
 Alveolus|Trakea|Laring|Diafragma
 Alveolus
 
-Perubahan yang menghasilkan zat baru disebut perubahan...
-Kimia|Fisika|Ukuran|Bentuk
-Kimia
+[Pernapasan] Saat menarik napas, diafragma akan...
+Berkontraksi dan mendatar|Relaksasi dan melengkung|Berhenti bergerak|Mengecilkan rongga dada
+Berkontraksi dan mendatar
 
-Alat yang digunakan untuk mengangkat beban dengan titik tumpu di antara beban dan kuasa disebut...
-Pengungkit jenis I|Pengungkit jenis II|Katrol tetap|Bidang miring
-Pengungkit jenis I</textarea>
-      <div class="row" style="margin-top:8px"><button id="loadBtn">Muat Soal</button><span class="small">Setiap soal = 3 baris: pertanyaan / pilihan dipisah | / jawaban benar.</span></div>
+[Pernapasan] Gas yang dibutuhkan tubuh dalam proses pernapasan adalah...
+Oksigen|Karbon dioksida|Nitrogen|Uap air
+Oksigen
+
+[Pencernaan] Organ yang berfungsi utama menyerap sari-sari makanan adalah...
+Usus halus|Usus besar|Lambung|Kerongkongan
+Usus halus
+
+[Pencernaan] Enzim pepsin di lambung membantu mencerna...
+Protein|Lemak|Vitamin|Mineral
+Protein
+
+[Pencernaan] Organ yang menghasilkan empedu untuk membantu pencernaan lemak adalah...
+Hati|Pankreas|Lambung|Usus halus
+Hati
+
+[Peredaran Darah] Organ yang berfungsi memompa darah ke seluruh tubuh adalah...
+Jantung|Paru-paru|Ginjal|Hati
+Jantung
+
+[Peredaran Darah] Pembuluh darah yang membawa darah keluar dari jantung disebut...
+Arteri|Vena|Kapiler|Limfa
+Arteri
+
+[Peredaran Darah] Sel darah yang berfungsi mengangkut oksigen adalah...
+Sel darah merah|Sel darah putih|Keping darah|Plasma darah
+Sel darah merah
+
+[Peredaran Darah] Bagian darah yang berperan dalam proses pembekuan darah adalah...
+Keping darah (trombosit)|Sel darah merah|Sel darah putih|Plasma darah
+Keping darah (trombosit)</textarea>
+      <div class="row" style="margin-top:8px"><button id="loadBtn">Muat 10 Soal</button><span class="small">Soal sudah tersedia otomatis dan dapat diedit jika diperlukan.</span></div>
     </section>
   </div>
 
@@ -150,6 +180,9 @@ const durationInput=document.getElementById('duration');
 const questionSelect=document.getElementById('questionSelect');
 const bank=document.getElementById('bank');
 const loadBtn=document.getElementById('loadBtn');
+const backBtn=document.getElementById('backBtn');
+const nextBtn=document.getElementById('nextBtn');
+const questionCounter=document.getElementById('questionCounter');
 const stage=document.getElementById('stage');
 const questionEl=document.getElementById('question');
 const choicesEl=document.getElementById('choices');
@@ -159,7 +192,7 @@ const logEl=document.getElementById('log');
 const handDot=document.getElementById('handDot');
 const handState=document.getElementById('handState');
 
-let stream=null, questions=[], active=[], score=0, round=0, running=false, paused=false;
+let stream=null, questions=[], active=[], score=0, round=0, running=false, paused=false, currentQuestion=0;
 let handLandmarker=null, handLoop=false, lastVideoTime=-1, detectedChoice=null, lastPickTime=0;
 
 function parseBank(){
@@ -179,29 +212,90 @@ async function toggleCamera(){
  if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;camOff.style.display='grid';cameraBtn.textContent='📷 Aktifkan Kamera';status('Kamera dimatikan');stopHandLoop();return}
  if(!navigator.mediaDevices?.getUserMedia){alert('Browser tidak mendukung kamera.');return}
  try{
-   stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+   stream=await navigator.mediaDevices.getUserMedia({
+  video:{
+    facingMode:{ideal:'user'},
+    width:{ideal:1280},
+    height:{ideal:720}
+  },
+  audio:false
+});
    video.srcObject=stream;camOff.style.display='none';cameraBtn.textContent='⛔ Matikan Kamera';status('Kamera aktif');
  }catch(e){alert('Kamera gagal diakses. Berikan izin kamera dan gunakan HTTPS atau localhost.');status('Kamera gagal')}
 }
 async function loadHandModel(){
  if(handLandmarker)return true;
+
  handState.textContent='Memuat model deteksi jari...';
- try{
-   const vision=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs');
-   const fileset=await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm');
-   handLandmarker=await vision.HandLandmarker.createFromOptions(fileset,{
-     baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'},
-     runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.55,minHandPresenceConfidence:.55,minTrackingConfidence:.5
-   });
-   handState.textContent='Deteksi jari siap';
-   return true;
- }catch(e){
-   console.error(e);
-   handState.textContent='Model gagal dimuat';
-   status('Deteksi jari gagal dimuat');
-   alert('Model deteksi jari tidak berhasil dimuat. Pastikan perangkat terhubung ke internet lalu coba lagi.');
-   return false;
+ status('Menghubungkan ke MediaPipe...');
+
+ // Beberapa sumber dicoba agar lebih tahan terhadap masalah CDN/DNS.
+ // Semua sumber tetap membutuhkan koneksi internet karena model belum
+ // disimpan di repository ini.
+ const sources=[
+   {
+     js:'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/vision_bundle.mjs',
+     wasm:'https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.35/wasm'
+   },
+   {
+     js:'https://unpkg.com/@mediapipe/tasks-vision@0.10.35/vision_bundle.mjs',
+     wasm:'https://unpkg.com/@mediapipe/tasks-vision@0.10.35/wasm'
+   }
+ ];
+ const models=[
+   'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'
+ ];
+
+ let lastError=null;
+
+ for(const source of sources){
+   try{
+     status('Memuat library deteksi jari...');
+     const vision=await import(source.js);
+     const fileset=await vision.FilesetResolver.forVisionTasks(source.wasm);
+
+     for(const modelUrl of models){
+       try{
+         status('Memuat model deteksi jari...');
+         handLandmarker=await vision.HandLandmarker.createFromOptions(fileset,{
+           baseOptions:{
+             modelAssetPath:modelUrl,
+             delegate:'CPU'
+           },
+           runningMode:'VIDEO',
+           numHands:1,
+           minHandDetectionConfidence:.45,
+           minHandPresenceConfidence:.45,
+           minTrackingConfidence:.45
+         });
+
+         handState.textContent='Deteksi jari siap';
+         status('Deteksi jari aktif');
+         return true;
+       }catch(modelError){
+         lastError=modelError;
+         console.warn('Model MediaPipe gagal dari:',modelUrl,modelError);
+       }
+     }
+   }catch(sourceError){
+     lastError=sourceError;
+     console.warn('Library MediaPipe gagal dari:',source.js,sourceError);
+   }
  }
+
+ console.error('Semua sumber MediaPipe gagal:',lastError);
+ handState.textContent='Model belum tersedia';
+ status('Model deteksi jari belum tersedia');
+
+ const retry=confirm(
+   'Model deteksi jari belum berhasil dimuat.\\n\\n' +
+   'Pastikan iPhone terhubung ke internet, lalu tekan OK untuk mencoba lagi.'
+ );
+ if(retry){
+   handLandmarker=null;
+   return loadHandModel();
+ }
+ return false;
 }
 async function toggleHand(){
  if(handLoop){stopHandLoop();return}
@@ -271,6 +365,49 @@ function handFrame(){
  }
  requestAnimationFrame(handFrame);
 }
+function updateQuestionSelect(){
+  questionSelect.innerHTML='';
+  questions.forEach((item,i)=>{
+    const opt=document.createElement('option');
+    opt.value=i;opt.textContent='Soal '+(i+1);
+    questionSelect.appendChild(opt);
+  });
+  questionSelect.value=String(currentQuestion);
+  updateQuestionCounter();
+}
+function updateQuestionCounter(){
+  const total=questions.length||10;
+  questionCounter.textContent='Soal '+(Math.min(currentQuestion+1,total))+' dari '+total;
+  backBtn.disabled=currentQuestion<=0;
+  nextBtn.disabled=currentQuestion>=total-1;
+}
+function showQuestion(index,autoStart=false){
+  if(!questions.length)questions=parseBank();
+  if(!questions.length)return;
+  currentQuestion=Math.max(0,Math.min(index,questions.length-1));
+  clearChoices();
+  const item=questions[currentQuestion];
+  questionEl.textContent=item.q;
+  questionSelect.value=String(currentQuestion);
+  updateQuestionCounter();
+  if(autoStart || running){
+    running=true;paused=false;pauseBtn.textContent='⏸ Jeda';
+    status('Soal '+(currentQuestion+1)+': arahkan jari ke jawaban');
+    item.opts.slice(0,4).forEach((x,i)=>makeChoice(x,i,item.ans,dur()));
+    log('Soal '+(currentQuestion+1)+' dimulai: '+item.q);
+  }
+}
+function nextQuestion(){
+  if(!questions.length)questions=parseBank();
+  if(currentQuestion>=questions.length-1){status('Sudah di soal terakhir');return}
+  showQuestion(currentQuestion+1,running);
+}
+function previousQuestion(){
+  if(!questions.length)questions=parseBank();
+  if(currentQuestion<=0){status('Sudah di soal pertama');return}
+  showQuestion(currentQuestion-1,running);
+}
+
 function makeChoice(text,idx,answer,duration){
  const el=document.createElement('button');el.type='button';el.className='choice c'+(idx+1);el.textContent=text;
  el.style.left=(6+idx*22+Math.random()*7)+'%';el.style.setProperty('--fall-distance',Math.max(260,stage.clientHeight*.84)+'px');el.style.animationDuration=duration+'s';
@@ -288,11 +425,11 @@ function startRound(){
 function pause(){
  if(!running)return;paused=!paused;pauseBtn.textContent=paused?'▶ Lanjutkan':'⏸ Jeda';active.forEach(o=>o.el.style.animationPlayState=paused?'paused':'running');status(paused?'Dijeda':'Berjalan');
 }
-function reset(){clearChoices();running=false;paused=false;score=0;round=0;renderScore();questionEl.textContent='Pertanyaan akan tampil di sini';status('Siap');pauseBtn.textContent='⏸ Jeda';logEl.textContent='Belum ada ronde.'}
-cameraBtn.onclick=toggleCamera;handBtn.onclick=toggleHand;startBtn.onclick=startRound;pauseBtn.onclick=pause;resetBtn.onclick=reset;
-loadBtn.onclick=()=>{questions=parseBank();alert(questions.length+' soal berhasil dimuat.')};
-questionSelect.onchange=()=>{if(questions.length)questionEl.textContent=questions[Number(questionSelect.value)%questions.length].q};
-window.addEventListener('resize',resizeCanvas);resizeCanvas();questions=parseBank();
+function reset(){clearChoices();running=false;paused=false;score=0;round=0;currentQuestion=0;renderScore();questionEl.textContent='Pertanyaan akan tampil di sini';status('Siap');pauseBtn.textContent='⏸ Jeda';logEl.textContent='Belum ada ronde.';questionSelect.value='0';updateQuestionCounter()}
+cameraBtn.onclick=toggleCamera;handBtn.onclick=toggleHand;startBtn.onclick=startRound;pauseBtn.onclick=pause;resetBtn.onclick=reset;backBtn.onclick=previousQuestion;nextBtn.onclick=nextQuestion;
+loadBtn.onclick=()=>{questions=parseBank();currentQuestion=0;updateQuestionSelect();showQuestion(0,false);alert(questions.length+' soal berhasil dimuat.')};
+questionSelect.onchange=()=>{if(questions.length)showQuestion(Number(questionSelect.value),false)};
+window.addEventListener('resize',resizeCanvas);resizeCanvas();questions=parseBank();updateQuestionSelect();showQuestion(0,false);
 window.addEventListener('beforeunload',()=>stream?.getTracks().forEach(t=>t.stop()));
 </script>
 </body>
