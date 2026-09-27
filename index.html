@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Quiz IPA - SMP Negeri 2 Belang</title>
+<style>
+:root{
+  --bg:#06101d;--panel:#0d1b2d;--line:#2b4565;--text:#f7fbff;--muted:#b8c8dc;
+  --accent:#6857f7;--good:#20c878;--bad:#ef5350;--warn:#f5c542
+}
+*{box-sizing:border-box}
+body{margin:0;background:#020711;color:var(--text);font-family:Arial,Helvetica,sans-serif}
+.app{max-width:1200px;margin:auto;padding:14px}
+.top{display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+.brand{font-weight:900;font-size:20px}.brand small{display:block;color:var(--muted);font-weight:500;font-size:12px;margin-top:3px}
+.controls{display:flex;gap:7px;flex-wrap:wrap}
+button,select,input,textarea{font:inherit}
+button{border:1px solid var(--line);background:#13263e;color:white;border-radius:10px;padding:10px 13px;cursor:pointer}
+button.primary{background:var(--accent);border-color:transparent}
+button.good{background:#12683b}.danger{background:#6d2222}
+button:disabled{opacity:.45;cursor:not-allowed}
+.stageWrap{border:1px solid var(--line);border-radius:16px;overflow:hidden;background:#091524}
+.stage{position:relative;aspect-ratio:16/9;min-height:360px;overflow:hidden;background:#081422}
+video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;background:#111c2b}
+#handCanvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.camOff{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:25px;background:radial-gradient(circle,#1a3150,#07111f);color:var(--muted)}
+.question{position:absolute;z-index:5;top:14px;left:50%;transform:translateX(-50%);width:min(92%,900px);background:rgba(13,30,52,.94);border:1px solid #49688f;border-radius:15px;padding:13px 17px;text-align:center;font-size:clamp(18px,2.5vw,31px);font-weight:900;line-height:1.2}
+.status{position:absolute;z-index:6;left:14px;top:14px;margin-top:70px;background:rgba(0,0,0,.62);padding:7px 10px;border-radius:9px;font-size:12px}
+.score{position:absolute;z-index:6;right:14px;top:14px;margin-top:70px;background:rgba(0,0,0,.62);padding:7px 10px;border-radius:9px;font-weight:900}
+.line{position:absolute;z-index:4;left:0;right:0;bottom:19%;border-top:3px dashed rgba(255,255,255,.9);pointer-events:none}
+.lineLabel{position:absolute;z-index:5;right:10px;bottom:calc(19% + 6px);background:rgba(0,0,0,.65);padding:4px 7px;border-radius:6px;font-size:11px}
+.choice{position:absolute;z-index:3;top:-110px;min-width:145px;max-width:230px;padding:13px 18px;border-radius:999px;color:#fff;font-weight:900;font-size:clamp(15px,2vw,23px);border:3px solid rgba(255,255,255,.9);box-shadow:0 8px 22px rgba(0,0,0,.35);cursor:pointer;touch-action:manipulation;animation:fall linear forwards;user-select:none}
+.choice.c1{background:#155e75}.choice.c2{background:#5b3b8c}.choice.c3{background:#87540a}.choice.c4{background:#861d50}
+.choice.detected{outline:6px solid #fff;box-shadow:0 0 0 7px #20c878,0 10px 30px rgba(0,0,0,.5);transform:scale(1.06)}
+.choice.correct{outline:6px solid #20c878;background:#146b3a!important}
+.choice.wrong{outline:6px solid #ef5350;background:#7c2020!important}
+@keyframes fall{from{transform:translateY(-120px)}to{transform:translateY(var(--fall-distance))}}
+.bottom{display:grid;grid-template-columns:1fr 1.4fr;gap:10px;margin-top:10px}
+.panel{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:13px}
+.panel h3{margin:0 0 9px;font-size:15px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.small{font-size:12px;color:var(--muted);line-height:1.45}
+textarea{width:100%;min-height:115px;resize:vertical;background:#071222;color:#fff;border:1px solid var(--line);border-radius:10px;padding:10px;line-height:1.4}
+select,input[type=number]{background:#071222;color:#fff;border:1px solid var(--line);border-radius:9px;padding:9px}
+.log{max-height:150px;overflow:auto;font-size:13px;color:#dce8f7}
+.log div{padding:6px 0;border-bottom:1px solid rgba(255,255,255,.08)}
+.handBadge{display:inline-flex;gap:6px;align-items:center;background:#17304c;border:1px solid #365b82;border-radius:20px;padding:6px 9px;font-size:12px}
+.dot{width:9px;height:9px;border-radius:50%;background:#ef5350}.dot.on{background:#20c878}
+@media(max-width:720px){
+ .app{padding:8px}.stage{min-height:300px;aspect-ratio:9/16}.question{font-size:18px}.status,.score{margin-top:64px}.choice{min-width:112px;padding:10px 12px}.bottom{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="top">
+    <div class="brand">
+      🎯 QUIZ IPA — PILIHAN JATUH
+      <small>SMP Negeri 2 Belang • Created EAT-4_2025</small>
+    </div>
+    <div class="controls">
+      <button id="cameraBtn" class="primary">📷 Aktifkan Kamera</button>
+      <button id="handBtn">☝️ Aktifkan Deteksi Jari</button>
+      <button id="startBtn" class="good">▶ Mulai Ronde</button>
+      <button id="pauseBtn">⏸ Jeda</button>
+      <button id="resetBtn" class="danger">↻ Reset</button>
+    </div>
+  </div>
+
+  <div class="stageWrap">
+    <div class="stage" id="stage">
+      <video id="video" autoplay playsinline muted></video>
+      <canvas id="handCanvas"></canvas>
+      <div class="camOff" id="camOff">
+        <div><strong>Kamera belum aktif</strong><br><span class="small">Gunakan Chrome/Edge/Safari terbaru. Berikan izin kamera. Untuk file HTML, buka melalui HTTPS atau localhost.</span></div>
+      </div>
+      <div class="question" id="question">Pertanyaan akan tampil di sini</div>
+      <div class="status" id="status">Siap</div>
+      <div class="score" id="score">Skor: 0</div>
+      <div class="line"></div>
+      <div class="lineLabel">BATAS — lewat sini = terkunci</div>
+      <div id="choices"></div>
+    </div>
+  </div>
+
+  <div class="row" style="margin-top:9px">
+    <span class="handBadge"><span class="dot" id="handDot"></span><span id="handState">Deteksi jari belum aktif</span></span>
+    <span class="small">Arahkan ujung jari telunjuk ke pilihan. Jika ujung jari berada di dalam gelembung jawaban, sistem memilihnya otomatis.</span>
+  </div>
+
+  <div class="bottom">
+    <section class="panel">
+      <h3>Pengaturan permainan</h3>
+      <div class="row">
+        <label class="small">Durasi jatuh
+          <input id="duration" type="number" min="3" max="20" value="8"> detik
+        </label>
+        <label class="small">Soal
+          <select id="questionSelect">
+            <option value="0">Sistem pencernaan</option>
+            <option value="1">Sistem pernapasan</option>
+            <option value="2">Zat dan perubahan</option>
+            <option value="3">Pesawat sederhana</option>
+          </select>
+        </label>
+      </div>
+      <p class="small">Mode kamera menggunakan deteksi landmark tangan. Yang dipakai sebagai penunjuk adalah ujung jari telunjuk (landmark 8), bukan sentuhan pada layar.</p>
+    </section>
+
+    <section class="panel">
+      <h3>Bank soal IPA</h3>
+      <textarea id="bank">Apa organ utama yang berfungsi menyerap sari-sari makanan?
+Usus halus|Usus besar|Lambung|Kerongkongan
+Usus halus
+
+Organ yang menjadi tempat pertukaran oksigen dan karbon dioksida adalah...
+Alveolus|Trakea|Laring|Diafragma
+Alveolus
+
+Perubahan yang menghasilkan zat baru disebut perubahan...
+Kimia|Fisika|Ukuran|Bentuk
+Kimia
+
+Alat yang digunakan untuk mengangkat beban dengan titik tumpu di antara beban dan kuasa disebut...
+Pengungkit jenis I|Pengungkit jenis II|Katrol tetap|Bidang miring
+Pengungkit jenis I</textarea>
+      <div class="row" style="margin-top:8px"><button id="loadBtn">Muat Soal</button><span class="small">Setiap soal = 3 baris: pertanyaan / pilihan dipisah | / jawaban benar.</span></div>
+    </section>
+  </div>
+
+  <section class="panel" style="margin-top:10px">
+    <h3>Riwayat ronde</h3>
+    <div class="log" id="log" aria-live="polite">Belum ada ronde.</div>
+  </section>
+</div>
+
+<script type="module">
+const root=document.getElementById('app');
+const video=document.getElementById('video');
+const canvas=document.getElementById('handCanvas');
+const ctx=canvas.getContext('2d');
+const camOff=document.getElementById('camOff');
+const cameraBtn=document.getElementById('cameraBtn');
+const handBtn=document.getElementById('handBtn');
+const startBtn=document.getElementById('startBtn');
+const pauseBtn=document.getElementById('pauseBtn');
+const resetBtn=document.getElementById('resetBtn');
+const durationInput=document.getElementById('duration');
+const questionSelect=document.getElementById('questionSelect');
+const bank=document.getElementById('bank');
+const loadBtn=document.getElementById('loadBtn');
+const stage=document.getElementById('stage');
+const questionEl=document.getElementById('question');
+const choicesEl=document.getElementById('choices');
+const scoreEl=document.getElementById('score');
+const statusEl=document.getElementById('status');
+const logEl=document.getElementById('log');
+const handDot=document.getElementById('handDot');
+const handState=document.getElementById('handState');
+
+let stream=null, questions=[], active=[], score=0, round=0, running=false, paused=false;
+let handLandmarker=null, handLoop=false, lastVideoTime=-1, detectedChoice=null, lastPickTime=0;
+
+function parseBank(){
+ const lines=bank.value.split(/\n/).map(s=>s.trim()).filter(Boolean), out=[];
+ for(let i=0;i+2<lines.length;i+=3){
+   const q=lines[i], opts=lines[i+1].split('|').map(s=>s.trim()).filter(Boolean), ans=lines[i+2];
+   if(q&&opts.length>=2&&ans) out.push({q,opts,ans});
+ }
+ return out;
+}
+function dur(){let n=Number(durationInput.value);if(!Number.isFinite(n))n=8;return Math.max(3,Math.min(20,Math.round(n)))}
+function status(s){statusEl.textContent=s}
+function renderScore(){scoreEl.textContent='Skor: '+score}
+function log(s){if(logEl.textContent==='Belum ada ronde.')logEl.textContent='';const d=document.createElement('div');d.textContent=s;logEl.prepend(d)}
+function clearChoices(){active.forEach(o=>o.el.remove());active=[];detectedChoice=null}
+async function toggleCamera(){
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;camOff.style.display='grid';cameraBtn.textContent='📷 Aktifkan Kamera';status('Kamera dimatikan');stopHandLoop();return}
+ if(!navigator.mediaDevices?.getUserMedia){alert('Browser tidak mendukung kamera.');return}
+ try{
+   stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'},width:{ideal:1280},height:{ideal:720}},audio:false});
+   video.srcObject=stream;camOff.style.display='none';cameraBtn.textContent='⛔ Matikan Kamera';status('Kamera aktif');
+ }catch(e){alert('Kamera gagal diakses. Berikan izin kamera dan gunakan HTTPS atau localhost.');status('Kamera gagal')}
+}
+async function loadHandModel(){
+ if(handLandmarker)return true;
+ handState.textContent='Memuat model deteksi jari...';
+ try{
+   const vision=await import('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/vision_bundle.mjs');
+   const fileset=await vision.FilesetResolver.forVisionTasks('https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.22/wasm');
+   handLandmarker=await vision.HandLandmarker.createFromOptions(fileset,{
+     baseOptions:{modelAssetPath:'https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task'},
+     runningMode:'VIDEO',numHands:2,minHandDetectionConfidence:.55,minHandPresenceConfidence:.55,minTrackingConfidence:.5
+   });
+   handState.textContent='Deteksi jari siap';
+   return true;
+ }catch(e){
+   console.error(e);
+   handState.textContent='Model gagal dimuat';
+   status('Deteksi jari gagal dimuat');
+   alert('Model deteksi jari tidak berhasil dimuat. Pastikan perangkat terhubung ke internet lalu coba lagi.');
+   return false;
+ }
+}
+async function toggleHand(){
+ if(handLoop){stopHandLoop();return}
+ if(!stream){alert('Aktifkan kamera terlebih dahulu.');return}
+ if(!(await loadHandModel()))return;
+ handLoop=true;handBtn.textContent='⛔ Matikan Deteksi Jari';handDot.classList.add('on');status('Deteksi jari aktif');requestAnimationFrame(handFrame);
+}
+function stopHandLoop(){handLoop=false;handBtn.textContent='☝️ Aktifkan Deteksi Jari';handDot.classList.remove('on');handState.textContent='Deteksi jari belum aktif';ctx.clearRect(0,0,canvas.width,canvas.height)}
+function resizeCanvas(){
+ const r=stage.getBoundingClientRect(), d=window.devicePixelRatio||1;
+ canvas.width=Math.round(r.width*d);canvas.height=Math.round(r.height*d);
+ canvas.style.width=r.width+'px';canvas.style.height=r.height+'px';ctx.setTransform(d,0,0,d,0,0);
+}
+function drawHand(x,y){
+ const r=stage.getBoundingClientRect();ctx.clearRect(0,0,r.width,r.height);
+ ctx.beginPath();ctx.arc(x,y,13,0,Math.PI*2);ctx.fillStyle='rgba(32,200,120,.9)';ctx.fill();
+ ctx.beginPath();ctx.arc(x,y,5,0,Math.PI*2);ctx.fillStyle='#fff';ctx.fill();
+ ctx.font='bold 13px Arial';ctx.fillStyle='#fff';ctx.fillText('JARI',x+16,y-12);
+}
+function findChoiceAt(x,y){
+ for(const o of active){
+   if(o.locked)continue;
+   const r=o.el.getBoundingClientRect(), sr=stage.getBoundingClientRect();
+   const left=r.left-sr.left,top=r.top-sr.top;
+   if(x>=left-10&&x<=left+r.width+10&&y>=top-10&&y<=top+r.height+10)return o;
+ }
+ return null;
+}
+function choose(o,source){
+ if(!running||o.locked)return;
+ o.locked=true;o.el.style.animationPlayState='paused';
+ const correct=o.text===o.answer;
+ o.el.classList.add(correct?'correct':'wrong');
+ if(correct){score+=10;status('BENAR +10');log('Ronde '+round+': '+o.text+' ✓ benar ('+source+')')}
+ else{score=Math.max(0,score-5);status('SALAH −5');log('Ronde '+round+': '+o.text+' ✗ salah ('+source+')')}
+ renderScore();
+ setTimeout(()=>{o.el.remove();active=active.filter(a=>a!==o)},450);
+}
+function handFrame(){
+ if(!handLoop)return;
+ if(video.readyState>=2&&video.currentTime!==lastVideoTime){
+   lastVideoTime=video.currentTime;resizeCanvas();
+   try{
+     const res=handLandmarker.detectForVideo(video,performance.now());
+     const sr=stage.getBoundingClientRect();
+     let best=null;
+     if(res.landmarks?.length){
+       for(const hand of res.landmarks){
+         const tip=hand[8]; // ujung jari telunjuk
+         if(!tip)continue;
+         // Kamera tidak dimirror; koordinat landmark langsung mengikuti frame.
+         const x=tip.x*sr.width,y=tip.y*sr.height;
+         if(!best||y>best.y)best={x,y};
+       }
+     }
+     if(best){
+       handDot.classList.add('on');handState.textContent='Jari terdeteksi — arahkan ke jawaban';
+       drawHand(best.x,best.y);
+       const hit=findChoiceAt(best.x,best.y);
+       active.forEach(o=>o.el.classList.toggle('detected',o===hit));
+       if(hit!==detectedChoice){detectedChoice=hit}
+       if(hit&&performance.now()-lastPickTime>650){lastPickTime=performance.now();choose(hit,'deteksi jari')}
+     }else{
+       handState.textContent='Belum ada tangan terdeteksi';active.forEach(o=>o.el.classList.remove('detected'));ctx.clearRect(0,0,canvas.width,canvas.height);detectedChoice=null;
+     }
+   }catch(e){console.warn(e)}
+ }
+ requestAnimationFrame(handFrame);
+}
+function makeChoice(text,idx,answer,duration){
+ const el=document.createElement('button');el.type='button';el.className='choice c'+(idx+1);el.textContent=text;
+ el.style.left=(6+idx*22+Math.random()*7)+'%';el.style.setProperty('--fall-distance',Math.max(260,stage.clientHeight*.84)+'px');el.style.animationDuration=duration+'s';
+ choicesEl.appendChild(el);
+ const o={el,text,answer,locked:false};active.push(o);
+ el.addEventListener('click',()=>choose(o,'klik'));
+ el.addEventListener('animationend',()=>{if(o.locked)return;o.locked=true;el.remove();active=active.filter(a=>a!==o);if(!active.length&&running)status('Semua pilihan sudah melewati batas')});
+}
+function startRound(){
+ if(!questions.length)questions=parseBank();if(!questions.length){alert('Bank soal belum valid.');return}
+ clearChoices();round++;const item=questions[(Number(questionSelect.value)||0)%questions.length];
+ questionEl.textContent=item.q;running=true;paused=false;pauseBtn.textContent='⏸ Jeda';status('Arahkan jari ke jawaban sebelum melewati batas');
+ item.opts.slice(0,4).forEach((x,i)=>makeChoice(x,i,item.ans,dur()));log('Ronde '+round+' dimulai: '+item.q);
+}
+function pause(){
+ if(!running)return;paused=!paused;pauseBtn.textContent=paused?'▶ Lanjutkan':'⏸ Jeda';active.forEach(o=>o.el.style.animationPlayState=paused?'paused':'running');status(paused?'Dijeda':'Berjalan');
+}
+function reset(){clearChoices();running=false;paused=false;score=0;round=0;renderScore();questionEl.textContent='Pertanyaan akan tampil di sini';status('Siap');pauseBtn.textContent='⏸ Jeda';logEl.textContent='Belum ada ronde.'}
+cameraBtn.onclick=toggleCamera;handBtn.onclick=toggleHand;startBtn.onclick=startRound;pauseBtn.onclick=pause;resetBtn.onclick=reset;
+loadBtn.onclick=()=>{questions=parseBank();alert(questions.length+' soal berhasil dimuat.')};
+questionSelect.onchange=()=>{if(questions.length)questionEl.textContent=questions[Number(questionSelect.value)%questions.length].q};
+window.addEventListener('resize',resizeCanvas);resizeCanvas();questions=parseBank();
+window.addEventListener('beforeunload',()=>stream?.getTracks().forEach(t=>t.stop()));
+</script>
+</body>
+</html>
