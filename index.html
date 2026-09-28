@@ -64,7 +64,7 @@ select,input[type=number]{background:#071222;color:#fff;border:1px solid var(--l
       <small>SMP Negeri 2 Belang • Created EAT-4_2025</small>
     </div>
     <div class="controls">
-      <button id="cameraBtn" class="primary">📷 Aktifkan Kamera Belakang</button>
+      <button id="cameraBtn" class="primary">📷 Aktifkan Kamera</button>
       <button id="handBtn">☝️ Aktifkan Deteksi Jari</button>
       <button id="startBtn" class="good">▶ Mulai Ronde</button>
       <button id="pauseBtn">⏸ Jeda</button>
@@ -76,8 +76,8 @@ select,input[type=number]{background:#071222;color:#fff;border:1px solid var(--l
     <div class="stage" id="stage">
       <video id="video" autoplay playsinline webkit-playsinline muted></video>
       <canvas id="handCanvas"></canvas>
-      <div class="camOff" id="camOff"><div style="position:absolute;bottom:10px;left:10px;right:10px;z-index:8;background:rgba(0,0,0,.55);padding:7px;border-radius:8px;font-size:12px">📱 Mode iPhone: kamera belakang</div>
-        <div><strong>Kamera belum aktif</strong><br><span class="small">Gunakan Chrome/Edge/Safari terbaru di iPhone. Berikan izin kamera. Untuk file HTML, buka melalui HTTPS atau localhost.</span></div>
+      <div class="camOff" id="camOff">
+        <div><strong>Kamera belum aktif</strong><br><span class="small">Gunakan Chrome/Edge/Safari terbaru. Berikan izin kamera. Untuk file HTML, buka melalui HTTPS atau localhost.</span></div>
       </div>
       <div class="question" id="question">Pertanyaan akan tampil di sini</div>
       <div class="status" id="status">Siap</div>
@@ -90,12 +90,12 @@ select,input[type=number]{background:#071222;color:#fff;border:1px solid var(--l
 
   <div class="row" style="margin-top:9px">
     <span class="handBadge"><span class="dot" id="handDot"></span><span id="handState">Deteksi jari belum aktif</span></span>
-    <span class="small">Arahkan ujung jari telunjuk ke pilihan. Jika ujung jari berada di dalam gelembung jawaban, sistem memilihnya otomatis. Mode iPhone: gunakan kamera belakang (environment). Pastikan halaman dibuka melalui HTTPS dan izinkan akses kamera.</span>
+    <span class="small">Arahkan ujung jari telunjuk ke pilihan. Jika ujung jari berada di dalam gelembung jawaban, sistem memilihnya otomatis. Untuk iPhone, izinkan Kamera dan pastikan halaman dibuka melalui HTTPS.</span>
   </div>
 
   <div class="navQuestions">
     <button id="backBtn">⬅ Back</button>
-    <span class="questionCounter" id="questionCounter">Soal 1 dari 18</span>
+    <span class="questionCounter" id="questionCounter">Soal 1 dari 10</span>
     <button id="nextBtn" class="primary">Next ➡</button>
   </div>
 
@@ -110,13 +110,13 @@ select,input[type=number]{background:#071222;color:#fff;border:1px solid var(--l
           <select id="questionSelect"></select>
         </label>
       </div>
-      <p class="small">Tersedia 18 soal: Sistem Pernapasan, zat berbahaya dalam rokok, penyakit/gangguan pernapasan, Sistem Pencernaan, dan Sistem Peredaran Darah. Gunakan tombol <b>Back</b> dan <b>Next</b> untuk berpindah soal.</p>
+      <p class="small">Tersedia 10 soal: Sistem Pernapasan, Sistem Pencernaan, dan Sistem Peredaran Darah. Gunakan tombol <b>Back</b> dan <b>Next</b> untuk berpindah soal.</p>
       <p class="small">Mode kamera menggunakan deteksi landmark tangan. Yang dipakai sebagai penunjuk adalah ujung jari telunjuk (landmark 8), bukan sentuhan pada layar.</p>
     </section>
 
     <section class="panel">
-      <h3>Bank Soal IPA — 18 Soal</h3>
-      <textarea id="bank">[Pernapasan] Tempat utama pertukaran oksigen dan karbon dioksida di paru-paru adalah...
+      <h3>Bank Soal IPA — 10 Soal</h3>
+      <textarea id="bank">[Pernapasan] Organ utama tempat pertukaran oksigen dan karbon dioksida adalah...
 Alveolus|Trakea|Laring|Diafragma
 Alveolus
 
@@ -124,45 +124,9 @@ Alveolus
 Berkontraksi dan mendatar|Relaksasi dan melengkung|Berhenti bergerak|Mengecilkan rongga dada
 Berkontraksi dan mendatar
 
-[Pernapasan] Urutan jalannya udara yang benar setelah udara masuk melalui hidung adalah...
-Faring → laring → trakea → bronkus → bronkiolus → alveolus|Laring → faring → trakea → alveolus → bronkus|Trakea → faring → laring → alveolus → bronkus|Faring → trakea → laring → bronkus → alveolus
-Faring → laring → trakea → bronkus → bronkiolus → alveolus
-
-[Pernapasan] Fungsi rambut hidung dan lendir pada rongga hidung adalah...
-Menyaring debu dan kotoran dari udara|Menghasilkan oksigen|Memompa darah|Mencerna makanan
-Menyaring debu dan kotoran dari udara
-
-[Pernapasan] Ketika menghembuskan napas secara normal, diafragma cenderung...
-Relaksasi dan melengkung ke atas|Berkontraksi dan mendatar|Menebal dan memanjang|Tidak bergerak sama sekali
-Relaksasi dan melengkung ke atas
-
-[Rokok] Zat dalam asap rokok yang dapat mengikat hemoglobin sehingga mengurangi kemampuan darah membawa oksigen adalah...
-Karbon monoksida|Nikotin|Tar|Kafein
-Karbon monoksida
-
-[Rokok] Zat dalam rokok yang menyebabkan ketergantungan atau kecanduan adalah...
-Nikotin|Karbon monoksida|Tar|Air
-Nikotin
-
-[Rokok] Tar dalam asap rokok terutama berkaitan dengan...
-Endapan zat berbahaya yang dapat merusak jaringan paru-paru|Menambah kadar oksigen darah|Membantu kerja alveolus|Menguatkan otot diafragma
-Endapan zat berbahaya yang dapat merusak jaringan paru-paru
-
-[Penyakit Pernapasan] Penyakit yang ditandai penyempitan dan peradangan saluran pernapasan sehingga dapat menyebabkan sesak dan mengi adalah...
-Asma|Gastritis|Anemia|Hipertensi
-Asma
-
-[Penyakit Pernapasan] Kerusakan alveolus secara bertahap yang dapat menyebabkan kesulitan bernapas merupakan ciri penyakit...
-Emfisema|Diare|Maag|Anemia
-Emfisema
-
-[Penyakit Pernapasan] Peradangan pada bronkus yang dapat menyebabkan batuk dan produksi lendir berlebih disebut...
-Bronkitis|Sinusitis|Gastritis|Artritis
-Bronkitis
-
-[Penyakit Pernapasan] Kebiasaan merokok dapat meningkatkan risiko gangguan pada sistem pernapasan karena...
-Asap rokok membawa berbagai zat berbahaya yang dapat merusak saluran dan jaringan paru-paru|Rokok menambah oksigen ke alveolus|Nikotin memperbesar alveolus|Tar membantu membersihkan paru-paru
-Asap rokok membawa berbagai zat berbahaya yang dapat merusak saluran dan jaringan paru-paru
+[Pernapasan] Gas yang dibutuhkan tubuh dalam proses pernapasan adalah...
+Oksigen|Karbon dioksida|Nitrogen|Uap air
+Oksigen
 
 [Pencernaan] Organ yang berfungsi utama menyerap sari-sari makanan adalah...
 Usus halus|Usus besar|Lambung|Kerongkongan
@@ -186,7 +150,11 @@ Arteri
 
 [Peredaran Darah] Sel darah yang berfungsi mengangkut oksigen adalah...
 Sel darah merah|Sel darah putih|Keping darah|Plasma darah
-Sel darah merah</textarea>
+Sel darah merah
+
+[Peredaran Darah] Bagian darah yang berperan dalam proses pembekuan darah adalah...
+Keping darah (trombosit)|Sel darah merah|Sel darah putih|Plasma darah
+Keping darah (trombosit)</textarea>
       <div class="row" style="margin-top:8px"><button id="loadBtn">Muat 10 Soal</button><span class="small">Soal sudah tersedia otomatis dan dapat diedit jika diperlukan.</span></div>
     </section>
   </div>
@@ -241,50 +209,16 @@ function renderScore(){scoreEl.textContent='Skor: '+score}
 function log(s){if(logEl.textContent==='Belum ada ronde.')logEl.textContent='';const d=document.createElement('div');d.textContent=s;logEl.prepend(d)}
 function clearChoices(){active.forEach(o=>o.el.remove());active=[];detectedChoice=null}
 async function toggleCamera(){
-  if(stream){
-    stream.getTracks().forEach(t=>t.stop());
-    stream=null;
-    video.srcObject=null;
-    camOff.style.display='grid';
-    cameraBtn.textContent='📷 Aktifkan Kamera Belakang';
-    status('Kamera belakang dimatikan');
-    stopHandLoop();
-    return;
-  }
-  if(!navigator.mediaDevices?.getUserMedia){
-    alert('Browser tidak mendukung kamera.');
-    return;
-  }
-  try{
-    try{
-      stream=await navigator.mediaDevices.getUserMedia({
-        video:{
-          facingMode:{exact:'environment'},
-          width:{ideal:1280},
-          height:{ideal:720}
-        },
-        audio:false
-      });
-    }catch(rearError){
-      console.warn('Kamera belakang exact gagal, mencoba environment ideal:',rearError);
-      stream=await navigator.mediaDevices.getUserMedia({
-        video:{
-          facingMode:{ideal:'environment'},
-          width:{ideal:1280},
-          height:{ideal:720}
-        },
-        audio:false
-      });
-    }
-    video.srcObject=stream;
-    camOff.style.display='none';
-    cameraBtn.textContent='⛔ Matikan Kamera Belakang';
-    status('Kamera belakang aktif');
-  }catch(e){
-    alert('Kamera belakang gagal diakses. Pada iPhone, izinkan akses Kamera dan gunakan HTTPS.');
-    status('Kamera belakang gagal');
-    console.error(e);
-  }
+ if(stream){stream.getTracks().forEach(t=>t.stop());stream=null;video.srcObject=null;camOff.style.display='grid';cameraBtn.textContent='📷 Aktifkan Kamera';status('Kamera dimatikan');stopHandLoop();return}
+ if(!navigator.mediaDevices?.getUserMedia){alert('Browser tidak mendukung kamera.');return}
+ try{
+   stream=await navigator.mediaDevices.getUserMedia({
+  video:{
+    facingMode:{ideal:'user'},
+    width:{ideal:1280},
+    height:{ideal:720}
+  },
+  audio:false
 });
    video.srcObject=stream;camOff.style.display='none';cameraBtn.textContent='⛔ Matikan Kamera';status('Kamera aktif');
  }catch(e){alert('Kamera gagal diakses. Berikan izin kamera dan gunakan HTTPS atau localhost.');status('Kamera gagal')}
