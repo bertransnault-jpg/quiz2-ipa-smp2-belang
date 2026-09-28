@@ -28,6 +28,25 @@ video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)
 .overlay{position:absolute;inset:0;background:#02060bd9;display:none;z-index:10;align-items:center;justify-content:center;text-align:center;padding:20px}.overlay.show{display:flex}.result{width:min(700px,94%);background:#0d1a2b;border:1px solid var(--line);border-radius:22px;padding:25px}.result h1{font-size:clamp(25px,5vw,50px);margin:0 0 8px}.winner{font-size:clamp(28px,6vw,62px);font-weight:1000;margin:10px}.pill{display:inline-block;padding:7px 12px;border-radius:999px;background:#17304b;color:#cdeaff;font-size:12px}
 .toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#06101c;color:#fff;border:1px solid var(--line);padding:10px 14px;border-radius:12px;z-index:100;display:none}.toast.show{display:block}
 @media(max-width:900px){.grid{grid-template-columns:1fr}.stage{min-height:260px}.side{display:block}.wrap{padding:8px}header{padding:11px}}
+
+.material-grid{display:grid;grid-template-columns:1fr;gap:8px}
+.material-btn{display:grid;grid-template-columns:38px 1fr;grid-template-rows:1fr 1fr;align-items:center;text-align:left;padding:10px;border:1px solid var(--line);border-radius:13px;background:#0a1626;color:#fff;cursor:pointer;transition:.2s}
+.material-btn span{grid-row:1/3;font-size:25px;text-align:center}.material-btn b{font-size:13px}.material-btn small{color:var(--muted)}
+.material-btn:hover,.material-btn.active{border-color:#38bdf8;box-shadow:0 0 0 2px #38bdf833;background:#102944;transform:translateY(-1px)}
+.selected-material{margin-top:10px;padding:9px 11px;border-radius:10px;background:linear-gradient(90deg,#0b3557,#17304b);font-size:12px;font-weight:800;text-align:center}
+.pill{margin-left:5px}
+.answer-flash{position:absolute;top:50%;transform:translateY(-50%) scale(.7);opacity:0;z-index:7;font-size:clamp(24px,5vw,60px);font-weight:1000;padding:20px 28px;border-radius:25px;color:#fff;pointer-events:none;text-shadow:0 3px 12px #000;transition:.18s}
+.left-flash{left:7%;background:#16a34acc;box-shadow:0 0 45px #22c55e}
+.right-flash{right:7%;background:#16a34acc;box-shadow:0 0 45px #22c55e}
+.answer-flash.wrong{background:#dc2626cc;box-shadow:0 0 45px #ef4444}
+.answer-flash.show{opacity:1;transform:translateY(-50%) scale(1)}
+.answer-feedback{position:absolute;left:50%;top:72%;transform:translate(-50%,-50%);z-index:8;font-weight:1000;font-size:clamp(20px,3vw,34px);padding:10px 18px;border-radius:999px;background:#06101ddd;border:1px solid #fff3;opacity:0;transition:.2s}
+.answer-feedback.show{opacity:1}
+.stage.correct-left .left-flash,.stage.correct-right .right-flash{background:#16a34add}
+.stage.wrong-left .left-flash,.stage.wrong-right .right-flash{background:#dc2626dd}
+@keyframes pulseAnswer{0%{box-shadow:0 0 0 0 #ffffff00}40%{box-shadow:0 0 0 14px #ffffff22}100%{box-shadow:0 0 0 0 #ffffff00}}
+.answer-flash.show{animation:pulseAnswer .65s}
+@media(max-width:600px){.material-btn{padding:8px}.answer-flash{padding:12px 16px}}
 </style>
 </head>
 <body>
@@ -42,8 +61,11 @@ video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)
     <div class="stage" id="stage">
       <video id="video" autoplay playsinline muted></video>
       <div class="divider"></div>
-      <div class="zone left">◀ KELOMPOK KIRI</div>
-      <div class="zone right">KELOMPOK KANAN ▶</div>
+      <div class="zone left" id="leftZone" onclick="registerAnswer('left')">◀ KIRI</div>
+      <div class="zone right" id="rightZone" onclick="registerAnswer('right')">KANAN ▶</div>
+      <div class="answer-flash left-flash" id="leftFlash">KIRI</div>
+      <div class="answer-flash right-flash" id="rightFlash">KANAN</div>
+      <div class="answer-feedback" id="answerFeedback"></div>
       <div class="qbox"><div class="question" id="question">Tekan START untuk memulai</div></div>
       <div class="status" id="status">Kamera belum aktif</div>
       <div class="overlay" id="resultOverlay">
@@ -59,18 +81,34 @@ video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)
     <div class="controls">
       <button class="btn primary" id="cameraBtn" onclick="toggleCamera()">📷 Aktifkan Kamera</button>
       <button class="btn" onclick="flipCamera()">🔄 Kamera Depan/Belakang</button>
-      <button class="btn green" id="startBtn" onclick="startGame()">▶ START</button>
-      <button class="btn" onclick="resetGame()">↻ RESET</button>
+      <button class="btn green" id="startBtn">▶ START</button>
+      <button class="btn" onclick="resetGame()">↻ RESET</button><button class="btn" id="soundBtn" onclick="toggleSound()">🔊 SOUND ON</button>
       <button class="btn red" onclick="endGame()">■ END GAME</button>
     </div>
   </main>
 
   <aside class="card side">
+    <div class="section material-section">
+      <h3>📚 Pilih Materi</h3>
+      <div class="material-grid">
+        <button class="material-btn active" data-material="pernapasan" onclick="selectMaterial('pernapasan')">
+          <span>🫁</span><b>Materi 1</b><small>Pernapasan Manusia</small>
+        </button>
+        <button class="material-btn" data-material="pencernaan" onclick="selectMaterial('pencernaan')">
+          <span>🍎</span><b>Materi 2</b><small>Pencernaan Manusia</small>
+        </button>
+        <button class="material-btn" data-material="peredaran" onclick="selectMaterial('peredaran')">
+          <span>🫀</span><b>Materi 3</b><small>Peredaran Darah Manusia</small>
+        </button>
+      </div>
+      <div class="selected-material" id="selectedMaterial">🫁 Pernapasan Manusia • 10 soal</div>
+    </div>
+
     <div class="section">
       <h3>⚙️ Pengaturan Game</h3>
       <div class="two">
         <div><label>Waktu per soal (detik)</label><input id="timeInput" type="number" min="3" max="600" value="20"></div>
-        <div><label>Soal per ronde</label><input id="roundInput" type="number" min="1" max="100" value="10"></div>
+        <div><label>Soal per ronde</label><input id="roundInput" type="number" min="1" max="10" value="10" readonly></div>
       </div>
       <div style="margin-top:8px"><label>Mode jawaban</label>
         <select id="modeInput">
@@ -78,23 +116,17 @@ video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)
           <option value="auto">Otomatis — kamera mendeteksi posisi orang</option>
         </select>
       </div>
-      <div class="small" style="margin-top:7px">Pada mode otomatis, sistem memperkirakan jumlah orang di masing-masing sisi berdasarkan deteksi pose. Pastikan pencahayaan cukup dan seluruh tubuh terlihat.</div>
     </div>
 
     <div class="section">
-      <h3>📝 Buat / Ganti Soal</h3>
-      <label>Pertanyaan</label><textarea id="qInput" placeholder="Contoh: Jantung berfungsi memompa darah ke seluruh tubuh."></textarea>
-      <div class="two">
-        <div><label>Jawaban BENAR berada di</label><select id="correctSide"><option value="left">KIRI</option><option value="right">KANAN</option></select></div>
-        <div><label>Nilai jawaban benar</label><input id="pointInput" type="number" min="1" max="100" value="10"></div>
-      </div>
-      <button class="btn primary" style="width:100%;margin-top:8px" onclick="addQuestion()">＋ Tambah Soal</button>
-      <button class="btn" style="width:100%;margin-top:6px" onclick="loadExample()">Isi Contoh Soal IPA</button>
+      <h3>🔑 Kunci Jawaban Materi</h3>
+      <div class="small">Setiap soal sudah memiliki kunci posisi KIRI atau KANAN. Saat jawaban dipilih, sisi yang dipilih langsung menyala <b>hijau</b> jika benar atau <b>merah</b> jika salah.</div>
     </div>
 
     <div class="section">
-      <h3>📚 Bank Soal (<span id="qCount">0</span>)</h3>
+      <h3>📋 Daftar 10 Soal <span class="pill" id="qCount">10</span></h3>
       <div class="list" id="qList"></div>
+    </div>
     </div>
 
     <div class="section">
@@ -115,42 +147,492 @@ video{width:100%;height:100%;object-fit:cover;display:block;transform:scaleX(-1)
 </div>
 </div>
 <div class="toast" id="toast"></div>
+<script>
+"use strict";
 
-<!-- MediaPipe legacy Pose: avoids the dynamic @mediapipe/tasks-vision module that often fails on iPhone. -->
-<script src="https://cdn.jsdelivr.net/npm/@mediapipe/pose@0.5/pose.js"></script>
+/* =========================================================
+   GAME BENAR SALAH - SMP NEGERI 2 BELANG
+   Robust controller: game does not depend on camera, audio,
+   MediaPipe, or external libraries to start.
+   ========================================================= */
+
+const $ = id => document.getElementById(id);
+
+const materialBanks = {
+  pernapasan: {
+    name:"Pernapasan Manusia", icon:"🫁",
+    questions:[
+      ["Hidung berfungsi menyaring, menghangatkan, dan melembapkan udara yang masuk.","left"],
+      ["Pertukaran oksigen dan karbon dioksida terutama terjadi di alveolus.","right"],
+      ["Trakea merupakan saluran yang menghubungkan laring dengan bronkus.","left"],
+      ["Diafragma tidak berperan dalam proses pernapasan manusia.","right"],
+      ["Saat inspirasi, diafragma berkontraksi dan bergerak ke bawah.","left"],
+      ["Bronkus adalah tempat utama pertukaran gas antara udara dan darah.","right"],
+      ["Paru-paru merupakan organ utama dalam sistem pernapasan manusia.","left"],
+      ["Oksigen dari udara dibutuhkan sel tubuh untuk proses respirasi.","right"],
+      ["Ekspirasi adalah proses masuknya udara ke dalam paru-paru.","right"],
+      ["Asap rokok dapat mengganggu kesehatan organ pernapasan.","left"]
+    ]
+  },
+  pencernaan: {
+    name:"Pencernaan Manusia", icon:"🍎",
+    questions:[
+      ["Pencernaan mekanis mengubah ukuran makanan tanpa menghasilkan zat baru.","left"],
+      ["Air liur mengandung enzim yang membantu pencernaan makanan.","right"],
+      ["Kerongkongan merupakan tempat utama penyerapan sari-sari makanan.","right"],
+      ["Lambung melakukan pencernaan secara mekanis dan kimiawi.","left"],
+      ["Usus halus merupakan tempat utama penyerapan zat makanan.","right"],
+      ["Pankreas menghasilkan beberapa enzim yang membantu pencernaan.","left"],
+      ["Hati tidak memiliki hubungan dengan proses pencernaan manusia.","right"],
+      ["Gerak peristaltik membantu mendorong makanan sepanjang saluran pencernaan.","left"],
+      ["Usus besar berperan dalam penyerapan air dan pembentukan feses.","right"],
+      ["Pencernaan kimiawi melibatkan enzim untuk memecah zat makanan.","left"]
+    ]
+  },
+  peredaran: {
+    name:"Peredaran Darah Manusia", icon:"🫀",
+    questions:[
+      ["Jantung berfungsi memompa darah ke seluruh tubuh.","left"],
+      ["Sel darah merah mengandung hemoglobin yang membantu mengangkut oksigen.","right"],
+      ["Arteri adalah pembuluh darah yang selalu membawa darah menuju jantung.","right"],
+      ["Vena membawa darah menuju jantung.","left"],
+      ["Kapiler memiliki dinding tipis sehingga mendukung pertukaran zat.","right"],
+      ["Trombosit berperan penting dalam proses pembekuan darah.","left"],
+      ["Sel darah putih membantu pertahanan tubuh terhadap penyakit.","right"],
+      ["Peredaran darah manusia disebut peredaran darah terbuka.","right"],
+      ["Darah membantu mengangkut oksigen, zat makanan, dan sisa metabolisme.","left"],
+      ["Jantung manusia memiliki empat ruang utama.","right"]
+    ]
+  }
+};
+
+let selectedMaterial = "pernapasan";
+let questions = [];
+let current = 0;
+let running = false;
+let scores = {left:0,right:0};
+let timeLeft = 20;
+let timerId = null;
+let soundOn = true;
+let cameraOn = false;
+let stream = null;
+let facing = "user";
+
+function toast(msg){
+  const el=$("toast");
+  if(!el) return;
+  el.textContent=msg;
+  el.classList.add("show");
+  clearTimeout(window.__toastTimer);
+  window.__toastTimer=setTimeout(()=>el.classList.remove("show"),1800);
+}
+
+function updateTimer(){
+  const t=Math.max(0,Number(timeLeft)||0);
+  const min=Math.floor(t/60);
+  const sec=t%60;
+  $("timer").textContent=String(min).padStart(2,"0")+":"+String(sec).padStart(2,"0");
+}
+
+function updateScore(){
+  $("leftScore").textContent=scores.left;
+  $("rightScore").textContent=scores.right;
+}
+
+function escapeHtml(s){
+  return String(s).replace(/[&<>"']/g,m=>({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  }[m]));
+}
+
+function renderList(){
+  $("qCount").textContent=questions.length;
+  $("qList").innerHTML=questions.map((q,i)=>
+    '<div class="qitem"><span><b>'+(i+1)+'.</b> '+escapeHtml(q.text)+
+    '<br><small>Kunci: <b>'+(q.correct==="left"?"KIRI":"KANAN")+
+    '</b> • +'+q.points+'</small></span></div>'
+  ).join("");
+}
+
+function selectMaterial(key){
+  if(running){
+    toast("Materi tidak dapat diganti saat game berlangsung.");
+    return;
+  }
+  if(!materialBanks[key]) return;
+  selectedMaterial=key;
+  const m=materialBanks[key];
+  questions=m.questions.map(x=>({text:x[0],correct:x[1],points:10}));
+
+  document.querySelectorAll(".material-btn").forEach(b=>{
+    b.classList.toggle("active",b.dataset.material===key);
+  });
+
+  $("selectedMaterial").textContent=m.icon+" "+m.name+" • "+questions.length+" soal";
+  renderList();
+  resetGame(false);
+  toast(m.name+" siap dimainkan.");
+}
+
+function clearAnswerFlash(){
+  $("stage").classList.remove("correct-left","correct-right","wrong-left","wrong-right");
+  ["leftFlash","rightFlash","answerFeedback"].forEach(id=>{
+    const el=$(id);
+    if(el) el.classList.remove("show","wrong");
+  });
+}
+
+function showAnswerFlash(side,correct){
+  clearAnswerFlash();
+  const flash=$(side==="left"? "leftFlash":"rightFlash");
+  flash.classList.toggle("wrong",!correct);
+  flash.classList.add("show");
+  $("stage").classList.add((correct?"correct-":"wrong-")+side);
+  $("answerFeedback").textContent=correct?"✓ BENAR!":"✕ SALAH!";
+  $("answerFeedback").classList.add("show");
+  setTimeout(clearAnswerFlash,700);
+}
+
+function showQuestion(){
+  if(!running) return;
+  if(current>=questions.length){
+    finishGame();
+    return;
+  }
+
+  const q=questions[current];
+  $("question").textContent=q.text;
+  timeLeft=Math.max(3,Number($("timeInput").value)||20);
+  updateTimer();
+
+  clearInterval(timerId);
+  timerId=setInterval(()=>{
+    if(!running) return;
+    timeLeft--;
+    updateTimer();
+    if(timeLeft<=0){
+      clearInterval(timerId);
+      toast("⏱️ Waktu habis!");
+      nextQuestion();
+    }
+  },1000);
+}
+
+function startGame(){
+  /* This function deliberately has NO camera/media dependency. */
+  if(running) return;
+
+  if(!questions.length){
+    selectMaterial("pernapasan");
+  }
+
+  current=0;
+  scores={left:0,right:0};
+  running=true;
+  timeLeft=Math.max(3,Number($("timeInput").value)||20);
+
+  updateScore();
+  clearAnswerFlash();
+
+  $("resultOverlay").classList.remove("show");
+  $("startBtn").textContent="⏸ GAME BERLANGSUNG";
+  $("startBtn").disabled=true;
+
+  const mode=$("modeInput").value;
+  $("status").textContent =
+    mode==="auto" && !cameraOn
+      ? "GAME BERLANGSUNG • mode otomatis menunggu kamera"
+      : "GAME BERLANGSUNG • pilih KIRI atau KANAN";
+
+  showQuestion();
+  toast("Game dimulai! Soal nomor 1 muncul.");
+}
+
+function registerAnswer(side){
+  if(!running) return;
+  if(side!=="left" && side!=="right") return;
+
+  const q=questions[current];
+  if(!q) return;
+
+  const correct=side===q.correct;
+  if(correct){
+    scores[side]+=q.points;
+    toast("✓ Benar! +"+q.points+" poin untuk "+side.toUpperCase());
+  }else{
+    toast("✕ Salah. Jawaban benar: "+q.correct.toUpperCase());
+  }
+
+  showAnswerFlash(side,correct);
+  updateScore();
+  nextQuestion();
+}
+
+function nextQuestion(){
+  if(!running) return;
+  clearInterval(timerId);
+  current++;
+  setTimeout(()=>{
+    if(running) showQuestion();
+  },700);
+}
+
+function resetGame(showToast=true){
+  clearInterval(timerId);
+  running=false;
+  current=0;
+  scores={left:0,right:0};
+  clearAnswerFlash();
+
+  timeLeft=Math.max(3,Number($("timeInput").value)||20);
+  updateScore();
+  updateTimer();
+
+  $("question").textContent="Tekan START untuk memulai";
+  $("startBtn").textContent="▶ START";
+  $("startBtn").disabled=false;
+  $("resultOverlay").classList.remove("show");
+  $("status").textContent=cameraOn?"Kamera aktif • siap bermain":"Kamera belum aktif";
+
+  if(showToast) toast("Game di-reset.");
+}
+
+function finishGame(){
+  clearInterval(timerId);
+  running=false;
+
+  let winner;
+  if(scores.left===scores.right) winner="SERI / IMBANG";
+  else if(scores.left>scores.right) winner="KELOMPOK KIRI MENANG";
+  else winner="KELOMPOK KANAN MENANG";
+
+  $("winner").textContent=winner;
+  $("finalScore").innerHTML=
+    '<div class="scoreBox left"><div class="small">KIRI</div><div class="scoreNum">'+scores.left+
+    '</div></div><div class="scoreBox right"><div class="small">KANAN</div><div class="scoreNum">'+scores.right+
+    '</div></div>';
+
+  $("resultTitle").textContent=materialBanks[selectedMaterial].icon+" "+
+    materialBanks[selectedMaterial].name+" — Game selesai";
+  $("resultOverlay").classList.add("show");
+  $("status").textContent="Game selesai";
+  $("startBtn").textContent="▶ START";
+  $("startBtn").disabled=false;
+}
+
+function endGame(){
+  if(!running){
+    toast("Game belum berlangsung.");
+    return;
+  }
+  finishGame();
+}
+
+function closeResult(){
+  $("resultOverlay").classList.remove("show");
+}
+
+function toggleSound(){
+  soundOn=!soundOn;
+  $("soundBtn").textContent=soundOn?"🔊 SOUND ON":"🔇 SOUND OFF";
+}
+
+async function toggleCamera(){
+  if(cameraOn){
+    stopCamera();
+    return;
+  }
+
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+    toast("Browser tidak mendukung kamera. Game manual tetap dapat dimainkan.");
+    $("status").textContent="Kamera tidak tersedia • mode manual siap";
+    return;
+  }
+
+  try{
+    stream=await navigator.mediaDevices.getUserMedia({
+      video:{facingMode:facing,width:{ideal:1280},height:{ideal:720}},
+      audio:false
+    });
+    $("video").srcObject=stream;
+    cameraOn=true;
+    $("cameraBtn").textContent="⏹ Matikan Kamera";
+    $("status").textContent="Kamera aktif • siap bermain";
+  }catch(e){
+    cameraOn=false;
+    toast("Kamera tidak dapat dibuka. Game manual tetap dapat dimainkan.");
+    $("status").textContent="Kamera gagal • mode manual siap";
+  }
+}
+
+function stopCamera(){
+  if(stream) stream.getTracks().forEach(t=>t.stop());
+  stream=null;
+  cameraOn=false;
+  $("video").srcObject=null;
+  $("cameraBtn").textContent="📷 Aktifkan Kamera";
+  $("status").textContent="Kamera belum aktif";
+}
+
+async function flipCamera(){
+  facing=facing==="user"?"environment":"user";
+  $("stage").classList.toggle("mirror-off",facing==="environment");
+
+  if(cameraOn){
+    stopCamera();
+    await toggleCamera();
+  }else{
+    toast("Mode kamera diubah.");
+  }
+}
+
+/* Keyboard support */
+document.addEventListener("keydown",e=>{
+  if(!running) return;
+  if(e.key==="ArrowLeft" || e.key.toLowerCase()==="a") registerAnswer("left");
+  if(e.key==="ArrowRight" || e.key.toLowerCase()==="d") registerAnswer("right");
+});
+
+/* Mode display */
+$("modeInput").addEventListener("change",e=>{
+  $("detectText").textContent=e.target.value==="auto"?"otomatis":"manual";
+  if(e.target.value==="auto" && !cameraOn)
+    $("status").textContent=running?"GAME BERLANGSUNG • aktifkan kamera untuk mode otomatis":"Kamera belum aktif";
+});
+
+/* Timer setting */
+$("timeInput").addEventListener("input",()=>{
+  if(!running){
+    timeLeft=Math.max(3,Number($("timeInput").value)||20);
+    updateTimer();
+  }
+});
+
+/* Explicit button wiring */
+$("startBtn").onclick=startGame;
+$("cameraBtn").onclick=toggleCamera;
+
+/* Initialize BEFORE user interaction */
+questions=materialBanks.pernapasan.questions.map(x=>({
+  text:x[0],correct:x[1],points:10
+}));
+renderList();
+updateScore();
+updateTimer();
+$("detectText").textContent="manual";
+$("selectedMaterial").textContent="🫁 Pernapasan Manusia • 10 soal";
+$("question").textContent="Tekan START untuk memulai";
+$("status").textContent="Kamera belum aktif";
+$("startBtn").disabled=false;
+
+console.log("GAME BENAR SALAH siap. Soal:",questions.length);
+</script>
 <script>
 const $=id=>document.getElementById(id);
 let questions=[], current=0, running=false, cameraOn=false, facing='user', stream=null, timerId=null, timeLeft=20;
 let scores={left:0,right:0}, pose=null, lastCounts={left:0,right:0}, autoCooldown=0;
 
-const examples=[
- ["Pencernaan mekanis mengubah ukuran makanan tanpa menghasilkan zat baru.","left",10],
- ["Enzim membantu proses pencernaan kimiawi.","right",10],
- ["Paru-paru merupakan organ utama pertukaran gas pada manusia.","left",10],
- ["Kerongkongan berfungsi utama menyerap sari-sari makanan.","right",10],
- ["Oksigen dibutuhkan sel tubuh untuk respirasi.","left",10],
- ["Usus halus merupakan tempat utama penyerapan zat makanan.","right",10],
- ["Lambung melakukan pencernaan secara mekanis dan kimiawi.","left",10],
- ["Faring termasuk saluran yang dilalui udara menuju laring.","right",10],
- ["Pankreas menghasilkan beberapa enzim pencernaan.","left",10],
- ["Air liur hanya berfungsi membasahi makanan dan tidak mengandung enzim.","right",10]
-];
+const materialBanks={
+  pernapasan:{
+    name:'Pernapasan Manusia',icon:'🫁',
+    questions:[
+      ['Hidung berfungsi menyaring, menghangatkan, dan melembapkan udara yang masuk.', 'left'],
+      ['Pertukaran oksigen dan karbon dioksida terutama terjadi di alveolus.', 'right'],
+      ['Trakea merupakan saluran yang menghubungkan laring dengan bronkus.', 'left'],
+      ['Diafragma tidak berperan dalam proses pernapasan manusia.', 'right'],
+      ['Saat inspirasi, diafragma berkontraksi dan bergerak ke bawah.', 'left'],
+      ['Bronkus adalah tempat utama pertukaran gas antara udara dan darah.', 'right'],
+      ['Paru-paru merupakan organ utama dalam sistem pernapasan manusia.', 'left'],
+      ['Oksigen dari udara dibutuhkan sel tubuh untuk proses respirasi.', 'right'],
+      ['Ekspirasi adalah proses masuknya udara ke dalam paru-paru.', 'right'],
+      ['Asap rokok dapat mengganggu kesehatan organ pernapasan.', 'left']
+    ]},
+  pencernaan:{
+    name:'Pencernaan Manusia',icon:'🍎',
+    questions:[
+      ['Pencernaan mekanis mengubah ukuran makanan tanpa menghasilkan zat baru.', 'left'],
+      ['Air liur mengandung enzim yang membantu pencernaan makanan.', 'right'],
+      ['Kerongkongan merupakan tempat utama penyerapan sari-sari makanan.', 'right'],
+      ['Lambung melakukan pencernaan secara mekanis dan kimiawi.', 'left'],
+      ['Usus halus merupakan tempat utama penyerapan zat makanan.', 'right'],
+      ['Pankreas menghasilkan beberapa enzim yang membantu pencernaan.', 'left'],
+      ['Hati tidak memiliki hubungan dengan proses pencernaan manusia.', 'right'],
+      ['Gerak peristaltik membantu mendorong makanan sepanjang saluran pencernaan.', 'left'],
+      ['Usus besar berperan dalam penyerapan air dan pembentukan feses.', 'right'],
+      ['Pencernaan kimiawi melibatkan enzim untuk memecah zat makanan.', 'left']
+    ]},
+  peredaran:{
+    name:'Peredaran Darah Manusia',icon:'🫀',
+    questions:[
+      ['Jantung berfungsi memompa darah ke seluruh tubuh.', 'left'],
+      ['Sel darah merah mengandung hemoglobin yang membantu mengangkut oksigen.', 'right'],
+      ['Arteri adalah pembuluh darah yang selalu membawa darah menuju jantung.', 'right'],
+      ['Vena membawa darah menuju jantung.', 'left'],
+      ['Kapiler memiliki dinding tipis sehingga mendukung pertukaran zat.', 'right'],
+      ['Trombosit berperan penting dalam proses pembekuan darah.', 'left'],
+      ['Sel darah putih membantu pertahanan tubuh terhadap penyakit.', 'right'],
+      ['Peredaran darah manusia disebut peredaran darah terbuka.', 'right'],
+      ['Darah membantu mengangkut oksigen, zat makanan, dan sisa metabolisme.', 'left'],
+      ['Jantung manusia memiliki empat ruang utama.', 'right']
+    ]}
+};
 
-function toast(msg){$("toast").textContent=msg;$("toast").classList.add('show');setTimeout(()=>$("toast").classList.remove('show'),2200)}
-function fmt(s){return String(Math.max(0,s)).padStart(2,'0')}
-function updateTimer(){ $("timer").textContent=`00:${fmt(timeLeft)}`; }
+let selectedMaterial='pernapasan';
+let soundOn=true;
+let answerLocked=false;
+
+function selectMaterial(key){
+  if(running){toast('Materi tidak dapat diganti saat game berlangsung.');return}
+  selectedMaterial=key;
+  document.querySelectorAll('.material-btn').forEach(b=>b.classList.toggle('active',b.dataset.material===key));
+  const m=materialBanks[key];
+  $('selectedMaterial').textContent=`${m.icon} ${m.name} • 10 soal`;
+  questions=m.questions.map((x,i)=>({text:x[0],correct:x[1],points:10}));
+  renderList();
+  resetGame();
+  toast(`${m.name}: 10 soal siap dimainkan.`);
+}
+
 function renderList(){
- $("qCount").textContent=questions.length;
- $("qList").innerHTML=questions.map((q,i)=>`<div class="qitem"><span><b>${i+1}.</b> ${escapeHtml(q.text)}<br><small>Benar: ${q.correct==='left'?'KIRI':'KANAN'} • +${q.points}</small></span><button class="btn red" onclick="removeQuestion(${i})">×</button></div>`).join('') || '<div class="small">Belum ada soal.</div>';
+  $('qCount').textContent=questions.length;
+  $('qList').innerHTML=questions.map((q,i)=>
+    `<div class="qitem"><span><b>${i+1}.</b> ${escapeHtml(q.text)}<br><small>Kunci: <b>${q.correct==='left'?'KIRI':'KANAN'}</b> • +${q.points}</small></span></div>`
+  ).join('');
 }
 function escapeHtml(s){return s.replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}
-function addQuestion(){
- const text=$("qInput").value.trim(); if(!text){toast('Tulis pertanyaan terlebih dahulu.');return}
- questions.push({text,correct:$("correctSide").value,points:+$("pointInput").value||10});
- $("qInput").value=''; renderList(); toast('Soal ditambahkan.');
+
+function clearAnswerFlash(){
+  $('stage').classList.remove('correct-left','correct-right','wrong-left','wrong-right');
+  ['leftFlash','rightFlash','answerFeedback'].forEach(id=>$(id).classList.remove('show','wrong'));
 }
-function removeQuestion(i){questions.splice(i,1);renderList()}
-function loadExample(){questions=examples.map(x=>({text:x[0],correct:x[1],points:x[2]}));renderList();toast('10 contoh soal IPA dimuat.')}
+function showAnswerFlash(side, correct){
+  clearAnswerFlash();
+  const flash=$(side==='left'?'leftFlash':'rightFlash');
+  flash.classList.toggle('wrong',!correct);
+  flash.classList.add('show');
+  $('stage').classList.add((correct?'correct-':'wrong-')+side);
+  $('answerFeedback').textContent=correct?'✓ BENAR!':'✕ SALAH!';
+  $('answerFeedback').style.color=correct?'#86efac':'#fca5a5';
+  $('answerFeedback').classList.add('show');
+  setTimeout(clearAnswerFlash,850);
+}
+
+function playSound(type){
+  if(!soundOn)return;
+  const el=$(type==='correct'?'correctSound':type==='wrong'?'wrongSound':'bgMusic');
+  if(!el)return;
+  el.currentTime=0;
+  el.volume=type==='bg'?0.12:0.7;
+  el.play().catch(()=>{});
+}
+function toggleSound(){
+  soundOn=!soundOn;
+  $('soundBtn').textContent=soundOn?'🔊 SOUND ON':'🔇 SOUND OFF';
+  const bg=$('bgMusic');
+  if(!soundOn)bg.pause();
+  else if(running)playSound('bg');
+}
+
 async function toggleCamera(){
  if(cameraOn){stopCamera();return}
  try{
@@ -197,34 +679,56 @@ function registerAnswer(side){
 }
 function updateScore(){$("leftScore").textContent=scores.left;$("rightScore").textContent=scores.right}
 function startGame(){
- if(!questions.length){toast('Tambahkan soal atau tekan “Isi Contoh Soal”.');return}
- if(!cameraOn){toast('Aktifkan kamera terlebih dahulu.');return}
- clearInterval(timerId); current=0; scores={left:0,right:0}; running=true;
- timeLeft=Math.max(3,+$("timeInput").value||20); updateScore(); updateTimer(); showQuestion();
- $("status").textContent='GAME BERLANGSUNG • berdiri di sisi pilihanmu';
+  if(running)return;
+  if(questions.length!==10){toast("Pilih salah satu materi terlebih dahulu.");return}
+  const mode=$("modeInput").value;
+  if(mode==="auto" && !cameraOn){toast("Mode otomatis membutuhkan kamera.");return}
+  clearInterval(timerId); current=0; scores={left:0,right:0}; running=true; answerLocked=false;
+  timeLeft=Math.max(3,+$("timeInput").value||20);
+  updateScore(); updateTimer(); showQuestion(); playSound('bg');
+  $("startBtn").textContent="⏸ GAME BERLANGSUNG"; $("startBtn").disabled=true;
+  $("status").textContent=mode==="auto"?"GAME BERLANGSUNG • deteksi posisi aktif":"GAME BERLANGSUNG • pilih KIRI atau KANAN";
 }
 function showQuestion(){
- if(current>=Math.min(questions.length,+$("roundInput").value||questions.length)){endGame();return}
+ if(current>=10){endGame();return}
  const q=questions[current];$("question").textContent=q.text;timeLeft=Math.max(3,+$("timeInput").value||20);updateTimer();
  clearInterval(timerId);timerId=setInterval(()=>{if(!running)return;timeLeft--;updateTimer();if(timeLeft<=0){clearInterval(timerId);toast('⏱️ Waktu habis!');nextQuestion()}},1000);
 }
 function nextQuestion(){if(!running)return;clearInterval(timerId);current++;setTimeout(()=>{if(running)showQuestion()},700)}
 function resetGame(){
- clearInterval(timerId);running=false;current=0;scores={left:0,right:0};timeLeft=Math.max(3,+$("timeInput").value||20);updateScore();updateTimer();
- $("question").textContent='Tekan START untuk memulai';$("status").textContent=cameraOn?'Kamera aktif • siap bermain':'Kamera belum aktif';$("resultOverlay").classList.remove('show');
+ clearInterval(timerId);running=false;current=0;scores={left:0,right:0};answerLocked=false;clearAnswerFlash();timeLeft=Math.max(3,+$("timeInput").value||20);updateScore();updateTimer();
+ $("question").textContent=`Pilih materi lalu tekan START`;$("status").textContent=cameraOn?'Kamera aktif • siap bermain':'Kamera belum aktif';$("resultOverlay").classList.remove('show');
 }
 function endGame(){
  if(!running && current===0 && scores.left===0 && scores.right===0){toast('Game belum dimulai.');return}
  clearInterval(timerId);running=false;
  let winner=scores.left===scores.right?'SERI / IMBANG':scores.left>scores.right?'KELOMPOK KIRI MENANG':'KELOMPOK KANAN MENANG';
  $("winner").textContent=winner;$("finalScore").innerHTML=`<div class="scoreBox left"><div class="small">KIRI</div><div class="scoreNum">${scores.left}</div></div><div class="scoreBox right"><div class="small">KANAN</div><div class="scoreNum">${scores.right}</div></div>`;
- $("resultTitle").textContent=`Game selesai — ${Math.min(current+1,questions.length)} soal diproses`;
- $("resultOverlay").classList.add('show');$("status").textContent='Game selesai';
+ $("resultTitle").textContent=`${materialBanks[selectedMaterial].icon} ${materialBanks[selectedMaterial].name} — Game selesai`;
+ $("resultOverlay").classList.add('show');$("status").textContent='Game selesai';$("bgMusic").pause();
 }
 function closeResult(){$("resultOverlay").classList.remove('show')}
-$("modeInput").addEventListener('change',e=>{$("detectText").textContent=e.target.value==='auto'?'otomatis':'manual'})
+$("modeInput").addEventListener('change',e=>{$("detectText").textContent=e.target.value==='auto'?'otomatis':'manual'});
+document.addEventListener('keydown',e=>{
+  if(!running)return;
+  if(e.key==='ArrowLeft'||e.key.toLowerCase()==='a')registerAnswer('left');
+  if(e.key==='ArrowRight'||e.key.toLowerCase()==='d')registerAnswer('right');
+});
 $("timeInput").addEventListener('input',()=>{if(!running){timeLeft=Math.max(3,+$("timeInput").value||20);updateTimer()}})
-updateTimer();renderList();loadExample();resetGame();
+updateTimer();
+selectMaterial("pernapasan");
+resetGame();
+$("startBtn").addEventListener("click", startGame);
 </script>
+
+<audio id="bgMusic" loop preload="auto">
+  <source src="https://cdn.pixabay.com/audio/2022/03/15/audio_2f3c5b7b0f.mp3" type="audio/mpeg">
+</audio>
+<audio id="correctSound" preload="auto">
+  <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_c8c8a7344f.mp3" type="audio/mpeg">
+</audio>
+<audio id="wrongSound" preload="auto">
+  <source src="https://cdn.pixabay.com/audio/2022/03/10/audio_6b2f3b8c0d.mp3" type="audio/mpeg">
+</audio>
 </body>
 </html>
